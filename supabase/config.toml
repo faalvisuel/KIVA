@@ -1,0 +1,17 @@
+project_id = "kiva"
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+[db]
+port = 54322
+major_version = 15
+[studio]
+enabled = true
+port = 54323
+[functions.analyze-brand]
+verify_jwt = true
+[functions.generate-design]
+verify_jwt = true
