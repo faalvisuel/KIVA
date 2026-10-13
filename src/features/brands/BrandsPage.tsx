@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { FileUp, Plus, UploadCloud } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
@@ -12,6 +12,17 @@ export default function BrandsPage() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [savedBrands, setSavedBrands] = useState<string[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    async function loadBrands() {
+      if (!supabase) return;
+      const { data } = await supabase.from('brands').select('name').order('created_at', { ascending: false });
+      if (active && data) setSavedBrands(data.map(item => item.name));
+    }
+    void loadBrands();
+    return () => { active = false; };
+  }, []);
 
   async function createBrand(event: FormEvent) {
     event.preventDefault();
