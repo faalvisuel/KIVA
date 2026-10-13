@@ -27,3 +27,17 @@ create policy "members read assets" on public.brand_assets for select to authent
 create policy "read public templates" on public.templates for select to authenticated using(is_public=true); create policy "members read projects" on public.projects for select to authenticated using(public.is_workspace_member(workspace_id)); create policy "editors create projects" on public.projects for insert to authenticated with check(public.has_workspace_role(workspace_id,array['owner','admin','editor']::public.workspace_role[]) and created_by=(select auth.uid())); create policy "editors update projects" on public.projects for update to authenticated using(public.has_workspace_role(workspace_id,array['owner','admin','editor']::public.workspace_role[])) with check(public.has_workspace_role(workspace_id,array['owner','admin','editor']::public.workspace_role[])); create policy "editors delete projects" on public.projects for delete to authenticated using(public.has_workspace_role(workspace_id,array['owner','admin','editor']::public.workspace_role[]));
 create policy "members read generations" on public.generations for select to authenticated using(public.is_workspace_member(workspace_id)); create policy "members read subscriptions" on public.subscriptions for select to authenticated using(public.is_workspace_member(workspace_id)); create policy "read plans" on public.plans for select to authenticated using(true); create policy "members read usage" on public.usage_events for select to authenticated using(public.is_workspace_member(workspace_id));
 insert into public.plans(id,name,monthly_price_xof,monthly_generation_limit,monthly_export_limit,max_brands) values('free','Découverte',0,10,20,1),('starter','Starter',3000,50,100,1),('business','Business',7500,200,500,5) on conflict(id) do nothing;
+
+-- Automatically make the workspace creator its first owner.
+create function public.add_workspace_creator_as_owner()
+returns trigger language plpgsql security definer set search_path=public as $$
+begin
+  insert into public.workspace_members(workspace_id,user_id,role)
+  values(new.id,new.created_by,'owner')
+  on conflict(workspace_id,user_id) do nothing;
+  return new;
+end;
+$$;
+create trigger workspace_creator_membership
+after insert on public.workspaces
+for each row execute procedure public.add_workspace_creator_as_owner();
