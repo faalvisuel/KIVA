@@ -1,7 +1,7 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { supabase } from '../../lib/supabase';
 
-export default function AuthGate({ children }: { children: React.ReactNode }) {
+export default function AuthGate({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState<'signin' | 'signup'>('signup');
